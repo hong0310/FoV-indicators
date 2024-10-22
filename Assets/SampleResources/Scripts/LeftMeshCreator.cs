@@ -1,0 +1,62 @@
+using UnityEngine;
+using Vuforia;
+
+public class LeftMeshCreator : MonoBehaviour
+{
+    public GameObject meshObject;
+    public ObserverBehaviour targetTable;
+    public ObserverBehaviour targetRobot;
+    public Transform[] tableLeftPoints = new Transform[4];  // Adjust size as needed for more points
+    public Transform[] robotLeftPoints = new Transform[4];
+
+    private void Update()
+    {
+        if (targetTable.TargetStatus.Status == Status.TRACKED &&
+            targetRobot.TargetStatus.Status == Status.TRACKED)
+        {
+            CreateMesh();
+        }
+        CreateMesh();
+        
+    }
+
+    void CreateMesh()
+    {
+        Vector3[] vertices = new Vector3[8];
+        for (int i = 0; i < 4; i++)
+        {
+            vertices[i] = tableLeftPoints[i].position;
+            vertices[i + 4] = robotLeftPoints[i].position;
+        }
+
+        int[] triangles = new int[] {
+            4,1,0,4,0,5,
+            6,3,1,6,1,4,
+            6,7,2,6,2,3,
+            7,5,0,7,0,2,
+            0,2,3,0,3,1,
+            4,5,7,4,7,6
+        };
+
+        Mesh mesh = new Mesh();
+        mesh.vertices = vertices;
+        mesh.triangles = triangles;
+        mesh.RecalculateNormals();
+
+        meshObject.GetComponent<MeshFilter>().mesh = mesh;
+        // meshObject.SetActive(true);
+
+        // Add or update the Box Collider
+        BoxCollider boxCollider = meshObject.GetComponent<BoxCollider>();
+        if (boxCollider == null)
+        {
+            boxCollider = meshObject.AddComponent<BoxCollider>();
+        }
+
+        // Set the collider size and center based on the mesh bounds
+        boxCollider.center = mesh.bounds.center;
+        boxCollider.size = mesh.bounds.size;
+
+        meshObject.SetActive(true);
+    }
+}
